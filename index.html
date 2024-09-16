@@ -1,71 +1,250 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra cứu đơn giao vận hàng loạt</title>
+    <title>API Caller</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f4f4f9;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
-        .container {
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 80%;
-            max-width: 800px;
-            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
+
+        label {
+            font-weight: bold;
+            color: #555;
         }
-        input[type="text"] {
-            width: calc(100% - 22px);
+
+        input[type="text"],
+        textarea {
+            width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
+
         button {
-            padding: 10px 20px;
-            margin: 5px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 10px 0;
             border: none;
             border-radius: 4px;
-            background-color: #007bff;
-            color: #fff;
+            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
+
         button:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .failure {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #overlay h1 {
+            color: white;
+            font-size: 30px;
         }
     </style>
+</head>
+
+<body>
+    <h1>Đổi log trạng thái giao hàng thành công</h1>
+    <form id="apiForm">
+        <label for="codes">Nhập danh sách mã đơn hàng (cách nhau bởi dấu cách):</label>
+        <input type="text" id="codes" name="codes" placeholder="VD: code1 code2 code3">
+
+        <label for="token">Nhập Token:</label>
+        <textarea id="token" name="token" placeholder="Nhập token của bạn"></textarea>
+
+        <button type="button" onclick="callAPIs()">Submit</button>
+    </form>
+
+    <h2>Kết quả</h2>
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>Mã Code</th>
+                <th>BL ID</th>
+                <th>Kết quả</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="overlay">
+        <h1>Loading...</h1>
+    </div>
+
     <script>
-        function searchOrders() {
-            var orderCodes = document.getElementById('orderCodes').value.split(' ');
-            for (var i = 0; i < orderCodes.length; i++) {
-                var orderCode = orderCodes[i].trim();
-                if (orderCode !== '') {
-                    var url = 'https://giaovan.phongvu.vn/van-don/' + orderCode + '?type=order_code';
-                    window.open(url, '_blank');
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'flex';
+        }
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        async function callAPIs() {
+            const codesInput = document.getElementById('codes').value.trim();
+            const token = document.getElementById('token').value.trim();
+            const codes = codesInput.split(' ');
+
+            const resultTableBody = document.querySelector('#resultTable tbody');
+            resultTableBody.innerHTML = '';
+
+            if (!codes.length || !token) {
+                alert('Vui lòng nhập mã đơn hàng và token');
+                return;
+            }
+
+            showOverlay();
+
+            for (const code of codes) {
+                try {
+                    const firstApiUrl = `https://logistics.tekoapis.com/api/admin/bls?keyword=${code}&field=bl_lines`;
+                    const firstApiResponse = await fetch(firstApiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'accept': 'application/json, text/plain, */*',
+                            'authorization': `Bearer ${token}`,
+                            'user-agent': 'Mozilla/5.0'
+                        }
+                    });
+
+                    const firstApiData = await firstApiResponse.json();
+
+                    if (firstApiData.code === 200 && firstApiData.data.bls.length > 0) {
+                        const blId = firstApiData.data.bls[0].id;
+
+                        const secondApiUrl = `https://logistics.tekoapis.com/api/admin/bls/${blId}`;
+                        const secondApiResponse = await fetch(secondApiUrl, {
+                            method: 'GET',
+                            headers: {
+                                'accept': 'application/json, text/plain, */*',
+                                'authorization': `Bearer ${token}`,
+                                'user-agent': 'Mozilla/5.0'
+                            }
+                        });
+
+                        const secondApiData = await secondApiResponse.json();
+                        const transportsID = secondApiData?.data?.bl?.transports[0]?.id ?? 0;
+
+                        const thirdApiUrl = `https://logistics.tekoapis.com/api/admin/transport/${transportsID}/ok`;
+                        const thirdApiResponse = await fetch(thirdApiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'accept': 'application/json, text/plain, */*',
+                                'authorization': `Bearer ${token}`,
+                                'user-agent': 'Mozilla/5.0'
+                            }
+                        });
+
+                        const thirdApiData = await thirdApiResponse.json();
+
+                        const resultClass = thirdApiData.code === 200 ? 'success' : 'failure';
+                        const resultMessage = thirdApiData.code === 200 ? 'Thành công' : `Thất bại: ${thirdApiData.message}`;
+
+                        const row = `
+                            <tr>
+                                <td>${code}</td>
+                                <td>${blId}</td>
+                                <td class="${resultClass}">${resultMessage}</td>
+                            </tr>
+                        `;
+                        resultTableBody.innerHTML += row;
+                    } else {
+                        const row = `
+                            <tr>
+                                <td>${code}</td>
+                                <td>Không tìm thấy</td>
+                                <td></td>
+                            </tr>
+                        `;
+                        resultTableBody.innerHTML += row;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    const row = `
+                        <tr>
+                            <td>${code}</td>
+                            <td>Lỗi khi gọi API</td>
+                            <td></td>
+                        </tr>
+                    `;
+                    resultTableBody.innerHTML += row;
                 }
             }
+            hideOverlay();
         }
     </script>
-</head>
-<body>
-    <div class="container">
-        <h1>Tra cứu Logistics Admin hàng loạt</h1>
-        <input type="text" id="orderCodes" placeholder="Nhập các mã đơn hàng, cách nhau bằng dấu cách">
-        <button onclick="searchOrders()">Tra cứu</button>
-    </div>
 </body>
+
 </html>
