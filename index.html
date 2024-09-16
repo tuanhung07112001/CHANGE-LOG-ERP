@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Caller</title>
+    <title>Đổi log trạng thái giao hàng thành công</title>
+    <link rel="icon" href="https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/258872306_1630710437266810_6072463976543713541_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEel-CrnVM1pHmY3pwAFMZxlTTZqHY0mbaVNNmodjSZtq2h_rVAPh3qYyEKmbn0hI8e-Yxl0lenOm_9mLXKCTNG&_nc_ohc=u3QJ3Mgu59QQ7kNvgEr02gX&_nc_ht=scontent.fhan4-3.fna&_nc_gid=AfW7f-nP30IVHN1DQanEqOR&oh=00_AYCr15_T4Xsf1bOdKRcUlVGLXG_1OdcAdDovOQGWi6-5WQ&oe=66EE3182" type="image/x-icon">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -148,13 +149,19 @@
         function showOverlay() {
             document.getElementById('overlay').style.display = 'flex';
         }
+
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
 
         async function callAPIs() {
             const codesInput = document.getElementById('codes').value.trim();
-            const token = document.getElementById('token').value.trim();
+            let token = document.getElementById('token').value.trim();
+
+            if (token.startsWith('"') && token.endsWith('"')) {
+                token = token.substring(1, token.length - 1);
+            }
+
             const codes = codesInput.split(' ');
 
             const resultTableBody = document.querySelector('#resultTable tbody');
@@ -242,6 +249,7 @@
                     resultTableBody.innerHTML += row;
                 }
             }
+
             hideOverlay();
         }
     </script>
