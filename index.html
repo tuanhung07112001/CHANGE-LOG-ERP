@@ -1,257 +1,338 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đổi log trạng thái giao hàng thành công</title>
-    <link rel="icon" href="https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/258872306_1630710437266810_6072463976543713541_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeEel-CrnVM1pHmY3pwAFMZxlTTZqHY0mbaVNNmodjSZtq2h_rVAPh3qYyEKmbn0hI8e-Yxl0lenOm_9mLXKCTNG&_nc_ohc=u3QJ3Mgu59QQ7kNvgEr02gX&_nc_ht=scontent.fhan4-3.fna&_nc_gid=AfW7f-nP30IVHN1DQanEqOR&oh=00_AYCr15_T4Xsf1bOdKRcUlVGLXG_1OdcAdDovOQGWi6-5WQ&oe=66EE3182" type="image/x-icon">
+    <title>Change log ERP</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+        /* Reset lại các thuộc tính mặc định và thiết lập font chữ */
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+            /* align-items: center; */
+            min-height: 100vh;
         }
 
         h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
+        /* Form Input */
         label {
-            font-weight: bold;
-            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            display: inline-block;
         }
 
-        input[type="text"],
-        textarea {
+        input {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
         }
 
         button {
             width: 100%;
-            background-color: #4CAF50;
+            padding: 15px;
+            background-color: #3498db;
             color: white;
-            padding: 14px 20px;
-            margin: 10px 0;
+            font-size: 1.2rem;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
+            transform: translateY(-2px);
         }
 
-        table {
+        button:active {
+            background-color: #2980b9;
+            transform: translateY(1px);
+        }
+
+        /* Kết quả trả về */
+        .result {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
         }
 
-        table,
-        th,
-        td {
-            border: 1px solid #ddd;
+        .result ul {
+            list-style: none;
+            padding: 0;
         }
 
-        th,
-        td {
+        .result li {
+            margin: 12px 0;
             padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            color: #333;
-        }
-
-        .success {
-            color: #28a745;
-            font-weight: bold;
-        }
-
-        .failure {
-            color: #dc3545;
-            font-weight: bold;
-        }
-
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            z-index: 9999;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
         }
 
-        #overlay h1 {
+        .result li.loading {
+            background-color: #f7c04e;
+        }
+
+        .result li.success {
+            background-color: #2ecc71;
             color: white;
-            font-size: 30px;
+            border: 1px solid #27ae60;
+        }
+
+        .result li.error {
+            background-color: #e74c3c;
+            color: white;
+            border: 1px solid #c0392b;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            input,
+            button {
+                font-size: 1rem;
+            }
+
+            .result {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h1>Đổi log trạng thái giao hàng thành công</h1>
-    <form id="apiForm">
-        <label for="codes">Nhập danh sách mã đơn hàng (cách nhau bởi dấu cách):</label>
-        <input type="text" id="codes" name="codes" placeholder="VD: code1 code2 code3">
 
+    <div class="container">
+        <h1>Change log ERP</h1>
+
+        <!-- Input for Token -->
         <label for="token">Nhập Token:</label>
-        <textarea id="token" name="token" placeholder="Nhập token của bạn"></textarea>
+        <input type="text" id="token" placeholder="Nhập Token" required><br>
 
-        <button type="button" onclick="callAPIs()">Submit</button>
-    </form>
+        <!-- Input for DocumentIds (cách nhau bằng dấu cách) -->
+        <label for="documentIds">Nhập Document IDs (cách nhau bằng dấu cách):</label>
+        <input type="text" id="documentIds" placeholder="Ví dụ: 241205783697412 241205783697413" required><br>
 
-    <h2>Kết quả</h2>
-    <table id="resultTable">
-        <thead>
-            <tr>
-                <th>Mã Code</th>
-                <th>BL ID</th>
-                <th>Kết quả</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+        <!-- Button to Trigger API Call -->
+        <button onclick="fetchData()">Submit</button>
 
-    <div id="overlay">
-        <h1>Loading...</h1>
+        <!-- Div to show results -->
+        <div class="result" id="result">
+            <ul id="statusList"></ul>
+        </div>
     </div>
 
     <script>
-        function showOverlay() {
-            document.getElementById('overlay').style.display = 'flex';
-        }
+        // Hàm lấy dữ liệu từ các ô input
+        function getInputData() {
+            const token = document.getElementById("token").value.trim();
+            const documentIds = document.getElementById("documentIds").value.trim().split(/\s+/);  // Tách theo dấu cách
 
-        function hideOverlay() {
-            document.getElementById('overlay').style.display = 'none';
-        }
-
-        async function callAPIs() {
-            const codesInput = document.getElementById('codes').value.trim();
-            let token = document.getElementById('token').value.trim();
-
-            if (token.startsWith('"') && token.endsWith('"')) {
-                token = token.substring(1, token.length - 1);
+            if (!token || documentIds.length === 0) {
+                alert("Vui lòng nhập đầy đủ thông tin Token và Document IDs.");
+                return null;
             }
 
-            const codes = codesInput.split(' ');
+            return { token, documentIds };
+        }
 
-            const resultTableBody = document.querySelector('#resultTable tbody');
-            resultTableBody.innerHTML = '';
+        // Hàm gọi API đầu tiên và xử lý kết quả
+        function fetchData() {
+            const inputData = getInputData();
+            if (!inputData) return;  // Nếu thiếu token hoặc documentIds, dừng thực hiện
 
-            if (!codes.length || !token) {
-                alert('Vui lòng nhập mã đơn hàng và token');
-                return;
-            }
+            const { token, documentIds } = inputData;
 
-            showOverlay();
+            // Hiển thị loading khi đang gọi API
+            const statusList = document.getElementById("statusList");
+            statusList.innerHTML = '';  // Xóa kết quả cũ
+            documentIds.forEach(id => {
+                const li = document.createElement("li");
+                li.classList.add("loading");
+                li.textContent = `Đang xử lý documentId: ${id}...`;
+                statusList.appendChild(li);
+            });
 
-            for (const code of codes) {
-                try {
-                    const firstApiUrl = `https://logistics.tekoapis.com/api/admin/bls?keyword=${code}&field=bl_lines`;
-                    const firstApiResponse = await fetch(firstApiUrl, {
-                        method: 'GET',
-                        headers: {
-                            'accept': 'application/json, text/plain, */*',
-                            'authorization': `Bearer ${token}`,
-                            'user-agent': 'Mozilla/5.0'
+            // Gọi API cho từng documentId
+            documentIds.forEach((documentId, index) => {
+                // API đầu tiên (Get Delivery Requests)
+                const apiUrl = 'https://staff-bff.tekoapis.com/api/v1/delivery-requests';
+                const headers = {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'vi',
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Connection': 'keep-alive'
+                };
+                const body = JSON.stringify({
+                    "page": 1,
+                    "pageSize": 10,
+                    "documentIds": [documentId]
+                });
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: body
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 0) {
+                            const deliveryRequests = data.data.deliveryRequests;
+                            deliveryRequests.forEach(request => {
+                                const deliveryRequestId = request.deliveryRequestId;
+                                const status = request.status;
+                                const currentTransportId = request.currentTransportId;
+                                const li = statusList.children[index];  // Lấy phần tử li tương ứng với documentId
+
+                                if (status === "DELIVERY_REQUESTED" || status === "DELIVERING") {
+                                    // Cập nhật trạng thái thành công hay lỗi cho documentId
+                                    if (status === "DELIVERY_REQUESTED") {
+                                        updateTransportStatusStep1(currentTransportId, token, deliveryRequestId, li, documentId);
+                                    }
+                                    else updateTransportStatusStep2(currentTransportId, token, deliveryRequestId, li, documentId);
+
+                                }
+                            });
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        const li = statusList.children[index];
+                        li.textContent = `documentId: ${documentId} - Lỗi khi gọi API`;
+                        li.classList.remove("loading");
+                        li.classList.add("error");
                     });
-
-                    const firstApiData = await firstApiResponse.json();
-
-                    if (firstApiData.code === 200 && firstApiData.data.bls.length > 0) {
-                        const blId = firstApiData.data.bls[0].id;
-
-                        const secondApiUrl = `https://logistics.tekoapis.com/api/admin/bls/${blId}`;
-                        const secondApiResponse = await fetch(secondApiUrl, {
-                            method: 'GET',
-                            headers: {
-                                'accept': 'application/json, text/plain, */*',
-                                'authorization': `Bearer ${token}`,
-                                'user-agent': 'Mozilla/5.0'
-                            }
-                        });
-
-                        const secondApiData = await secondApiResponse.json();
-                        const transportsID = secondApiData?.data?.bl?.transports[0]?.id ?? 0;
-
-                        const thirdApiUrl = `https://logistics.tekoapis.com/api/admin/transport/${transportsID}/ok`;
-                        const thirdApiResponse = await fetch(thirdApiUrl, {
-                            method: 'POST',
-                            headers: {
-                                'accept': 'application/json, text/plain, */*',
-                                'authorization': `Bearer ${token}`,
-                                'user-agent': 'Mozilla/5.0'
-                            }
-                        });
-
-                        const thirdApiData = await thirdApiResponse.json();
-
-                        const resultClass = thirdApiData.code === 200 ? 'success' : 'failure';
-                        const resultMessage = thirdApiData.code === 200 ? 'Thành công' : `Thất bại: ${thirdApiData.message}`;
-
-                        const row = `
-                            <tr>
-                                <td>${code}</td>
-                                <td>${blId}</td>
-                                <td class="${resultClass}">${resultMessage}</td>
-                            </tr>
-                        `;
-                        resultTableBody.innerHTML += row;
-                    } else {
-                        const row = `
-                            <tr>
-                                <td>${code}</td>
-                                <td>Không tìm thấy</td>
-                                <td></td>
-                            </tr>
-                        `;
-                        resultTableBody.innerHTML += row;
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    const row = `
-                        <tr>
-                            <td>${code}</td>
-                            <td>Lỗi khi gọi API</td>
-                            <td></td>
-                        </tr>
-                    `;
-                    resultTableBody.innerHTML += row;
-                }
-            }
-
-            hideOverlay();
+            });
         }
+
+        // Hàm gọi API thứ 2 để cập nhật trạng thái của transport (Step 1)
+        function updateTransportStatusStep1(currentTransportId, token, deliveryRequestId, li, documentId) {
+            const apiUrl = `https://staff-bff.tekoapis.com/api/v1/transports/${currentTransportId}/manual-update-status`;
+            const headers = {
+                'sec-ch-ua-platform': '"macOS"',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            const body = JSON.stringify({
+                "deliveryRequestId": deliveryRequestId,
+                "status": "DELIVERING"
+            });
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: body
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 0) {
+                        updateTransportStatusStep2(currentTransportId, token, deliveryRequestId, li, documentId);
+                        // li.textContent = `documentId: ${documentId} - Cập nhật trạng thái thành công: DELIVERING`;
+                        // li.classList.remove("loading");
+                        // li.classList.add("success");
+                    } else {
+                        li.textContent = `documentId: ${documentId} - Cập nhật thất bại`;
+                        li.classList.remove("loading");
+                        li.classList.add("error");
+                    }
+                })
+                .catch(error => {
+                    li.textContent = `documentId: ${documentId} - Lỗi cập nhật trạng thái`;
+                    li.classList.remove("loading");
+                    li.classList.add("error");
+                    console.error('Error updating transport status:', error);
+                });
+        }
+
+        // Hàm gọi API thứ 2 để cập nhật trạng thái của transport (Step 2)
+        function updateTransportStatusStep2(currentTransportId, token, deliveryRequestId, li, documentId) {
+            const apiUrl = `https://staff-bff.tekoapis.com/api/v1/transports/${currentTransportId}/manual-update-status`;
+            const headers = {
+                'sec-ch-ua-platform': '"macOS"',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            const body = JSON.stringify({
+                "deliveryRequestId": deliveryRequestId,
+                "status": "DELIVERED"
+            });
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: body
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 0) {
+                        li.textContent = `documentId: ${documentId} - Cập nhật trạng thái thành công: DELIVERED`;
+                        li.classList.remove("loading");
+                        li.classList.add("success");
+                    } else {
+                        li.textContent = `documentId: ${documentId} - Cập nhật thất bại`;
+                        li.classList.remove("loading");
+                        li.classList.add("error");
+                    }
+                })
+                .catch(error => {
+                    li.textContent = `documentId: ${documentId} - Lỗi cập nhật trạng thái`;
+                    li.classList.remove("loading");
+                    li.classList.add("error");
+                    console.error('Error updating transport status:', error);
+                });
+        }
+
     </script>
 </body>
 
